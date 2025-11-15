@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TikTok Clone</title>
+    <title>FLKRDSTUDIO Quiz App</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
             --system-blue: #007aff;
-            --system-gray-1: #000000; /* Primary background for TikTok is black */
-            --system-gray-2: #1c1c1e; /* Grouped component background */
-            --system-gray-3: #3a3a3c; /* Borders, separators */
-            --label-primary: #ffffff;
-            --label-secondary: #e5e5ea;
+            --system-green: #34c759;
+            --system-red: #ff3b30;
+            --system-gray-1: #f2f2f7; /* Primary background */
+            --system-gray-2: #ffffff; /* Grouped component background */
+            --system-gray-3: #c7c7cc; /* Borders, separators */
+            --system-gray-4: #e5e5ea; 
+            --label-primary: #000000;
+            --label-secondary: #8e8e93;
         }
         html, body {
             height: 100%;
@@ -26,245 +29,332 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
-
-        #app-container {
-            -webkit-overflow-scrolling: touch;
-            background-color: var(--system-gray-1);
-        }
-
-        #app-content {
-            position: relative;
-        }
-
+        #app-container { -webkit-overflow-scrolling: touch; }
+        #app-content { position: relative; }
         .app-view {
-            display: none; /* Hidden by default */
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             transition: transform 0.35s cubic-bezier(0.4, 0.0, 0.2, 1);
+            will-change: transform;
+            padding-top: 1rem;
         }
-        .app-view.active {
-            display: block; /* Shown when active */
-        }
-        
+        .app-view.hidden { transform: translateX(100%); pointer-events: none; opacity: 0; }
         @keyframes slide-in-right { from { transform: translateX(100%); } to { transform: translateX(0); } }
         @keyframes slide-out-left { from { transform: translateX(0); } to { transform: translateX(-100%); } }
-
         .slide-in-right { animation: slide-in-right 0.35s cubic-bezier(0.4, 0.0, 0.2, 1) forwards; }
         .slide-out-left { animation: slide-out-left 0.35s cubic-bezier(0.4, 0.0, 0.2, 1) forwards; }
-
-        .tab-button.active { color: var(--label-primary); }
-        .tab-button:not(.active) { color: var(--label-secondary); }
-
-        #home-view {
-            scroll-snap-type: y mandatory;
-            overflow-y: scroll;
-            height: 100%;
+        .tab-button.active { color: var(--system-blue); }
+        .list-inset-grouped {
+            margin: 0 1rem;
+            border-radius: 0.75rem;
+            background-color: var(--system-gray-2);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            overflow: hidden;
         }
-        .video-slide {
-            scroll-snap-align: start;
-            position: relative;
+        .list-inset-grouped li {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--system-gray-3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
         }
-        .video-slide video {
-            object-fit: cover;
+        .list-inset-grouped li:active { background-color: var(--system-gray-4); }
+        .list-inset-grouped li:last-child { border-bottom: none; }
+        .chevron::after {
+            content: '>';
+            color: var(--label-secondary);
+            font-weight: bold;
+            font-size: 1.2rem;
         }
-        .text-shadow {
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        .answer-option {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 1rem;
+            background-color: var(--system-gray-2);
+            border: 1px solid var(--system-gray-3);
+            border-radius: 0.75rem;
+            margin-bottom: 0.75rem;
+            transition: background-color 0.2s, border-color 0.2s;
         }
-        #header-title-default { display: block; }
-        #header-title-home { display: none; }
+        .answer-option.correct { background-color: var(--system-green); color: white; border-color: var(--system-green); }
+        .answer-option.incorrect { background-color: var(--system-red); color: white; border-color: var(--system-red); }
+        .answer-option:disabled { opacity: 0.7; }
     </style>
 </head>
 <body class="flex justify-center items-center bg-black">
 
     <div id="app-container" class="w-full max-w-md h-full flex flex-col bg-[var(--system-gray-1)] shadow-2xl overflow-hidden">
         
-        <header id="app-header" class="absolute top-0 left-0 right-0 z-10 flex items-center justify-center p-3 bg-transparent text-white">
-            <h1 id="header-title-default" class="text-lg font-semibold text-center mx-auto">ماڵەوە</h1>
-            <div id="header-title-home" class="hidden items-center space-x-4">
-                <button class="text-gray-400 font-semibold">Following</button>
-                <button class="text-white font-bold text-lg">For You</button>
-            </div>
+        <header id="app-header" class="flex items-center justify-center p-3 bg-[var(--system-gray-1)]/80 backdrop-blur-md border-b border-[var(--system-gray-3)] flex-shrink-0">
+            <h1 id="header-title" class="text-lg font-semibold text-center mx-auto">پۆلەکان</h1>
         </header>
 
-        <main id="app-content" class="flex-1 relative">
+        <main id="app-content" class="flex-1 overflow-y-auto relative">
             
-            <div id="home-view" class="app-view active">
-                <!-- Video content will be injected here by JavaScript -->
-            </div>
-
-            <div id="friends-view" class="app-view p-4">
-                 <ul class="rounded-lg bg-[var(--system-gray-2)] overflow-hidden">
-                    <li class="p-4 border-b border-[var(--system-gray-3)] flex items-center space-x-4">
-                        <img class="w-12 h-12 rounded-full" src="https://i.pravatar.cc/150?u=friend1" alt="Avatar">
-                        <div>
-                            <p class="font-semibold">هەڤاڵ ۱</p>
-                            <p class="text-sm text-[var(--label-secondary)]">هاوڕێی پێشنیارکراو</p>
-                        </div>
-                    </li>
-                    <li class="p-4 flex items-center space-x-4">
-                        <img class="w-12 h-12 rounded-full" src="https://i.pravatar.cc/150?u=friend2" alt="Avatar">
-                        <div>
-                            <p class="font-semibold">هەڤاڵ ۲</p>
-                            <p class="text-sm text-[var(--label-secondary)]">هاوڕێی پێشنیارکراو</p>
-                        </div>
-                    </li>
+            <div id="categories-view" class="app-view">
+                <p class="text-[var(--label-secondary)] px-5 mb-2 text-sm">پۆلێک هەڵبژێرە بۆ دەستپێکردن</p>
+                <ul id="category-list" class="list-inset-grouped">
+                    <li data-category="general"><span>زانیاری گشتی</span><span class="chevron"></span></li>
+                    <li data-category="social"><span>مێژوو و کولتوور</span><span class="chevron"></span></li>
+                    <li data-category="science"><span>زانست</span><span class="chevron"></span></li>
                 </ul>
             </div>
             
-            <div id="inbox-view" class="app-view p-4">
-                <h2 class="text-xl font-bold mb-4">نامەکان</h2>
-                <ul class="rounded-lg bg-[var(--system-gray-2)] overflow-hidden">
-                    <li class="p-4 border-b border-[var(--system-gray-3)]">چالاکی نوێ</li>
-                    <li class="p-4">پەیامەکان</li>
-                </ul>
-            </div>
-
-            <div id="profile-view" class="app-view p-4 text-center">
-                <img class="w-24 h-24 rounded-full mx-auto" src="https://i.pravatar.cc/150?u=zana" alt="Profile Picture">
-                <h2 class="text-xl font-bold mt-4">Zana Faruq</h2>
-                <p class="text-[var(--label-secondary)]">@zana_farooq</p>
-                <div class="flex justify-around my-6">
-                    <div><span class="font-bold">120</span> <span class="text-[var(--label-secondary)]">Following</span></div>
-                    <div><span class="font-bold">2.1M</span> <span class="text-[var(--label-secondary)]">Followers</span></div>
-                    <div><span class="font-bold">15.3M</span> <span class="text-[var(--label-secondary)]">Likes</span></div>
+            <div id="quiz-view" class="app-view hidden">
+                <div class="p-4 h-full flex flex-col">
+                    <div class="mb-4 flex-shrink-0">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm font-medium text-[var(--label-secondary)]">پێشکەوتن</span>
+                            <span id="progress-text" class="text-sm font-medium text-[var(--label-secondary)]">1 / 10</span>
+                        </div>
+                        <div class="w-full bg-[var(--system-gray-3)] rounded-full h-1.5">
+                            <div id="progress-bar" class="bg-[var(--system-blue)] h-1.5 rounded-full transition-all duration-300 ease-in-out" style="width: 10%"></div>
+                        </div>
+                    </div>
+                    <div class="flex-grow flex flex-col justify-center">
+                        <h2 id="question-title" class="text-2xl font-bold mb-6 text-center"></h2>
+                        <div id="answer-options"></div>
+                    </div>
+                    <button id="next-question-btn" class="hidden w-full bg-[var(--system-blue)] text-white font-bold py-3 px-4 rounded-lg mt-4 flex-shrink-0">پرسیاری دواتر</button>
                 </div>
-                <button class="px-8 py-2 bg-[var(--system-gray-2)] rounded-md">Edit Profile</button>
+            </div>
+
+            <div id="results-view" class="app-view hidden flex flex-col items-center justify-center text-center p-4">
+                <h2 class="text-2xl font-bold mb-2">کۆتایی هات!</h2>
+                <p class="text-5xl font-bold my-4" id="final-score"></p>
+                <p class="text-[var(--label-secondary)] text-lg" id="score-details"></p>
+                <button id="play-again-btn" class="w-4/5 bg-[var(--system-blue)] text-white font-bold py-3 px-4 rounded-lg mt-8">دووبارە یاری بکەرەوە</button>
+            </div>
+
+            <div id="settings-view" class="app-view hidden">
+                 <ul class="list-inset-grouped">
+                    <li><span>پرۆفایل</span></li>
+                    <li><span>ئاگادارکردنەوەکان</span></li>
+                    <li><span>دەربارەی ئێمە</span></li>
+                </ul>
             </div>
             
         </main>
 
-        <nav id="app-tab-bar" class="absolute bottom-0 left-0 right-0 z-10 flex justify-around items-center py-2 bg-black border-t border-[var(--system-gray-3)] flex-shrink-0">
-             <button data-view="home-view" data-title="ماڵەوە" class="tab-button active flex flex-col items-center p-2 text-xs font-semibold">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12.71 2.042a1 1 0 00-1.42 0l-9 9A1 1 0 003 12.75V21a1 1 0 001 1h5.25a1 1 0 001-1v-6.035a1.5 1.5 0 011.5-1.5h.5a1.5 1.5 0 011.5 1.5V21a1 1 0 001 1H20a1 1 0 001-1v-8.25a1 1 0 00-.29-.708l-9-9z"></path></svg>
-                ماڵەوە
+        <nav id="app-tab-bar" class="flex justify-around items-center py-2 bg-[var(--system-gray-1)]/80 backdrop-blur-md border-t border-[var(--system-gray-3)] flex-shrink-0">
+             <button data-view="categories-view" data-title="پۆلەکان" class="tab-button active flex flex-col items-center p-2 transition-colors w-20">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                   <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                <span class="text-xs mt-1">پۆلەکان</span>
             </button>
-             <button data-view="friends-view" data-title="هاوڕێیان" class="tab-button flex flex-col items-center p-2 text-xs font-semibold">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197M15 11a4 4 0 110-5.292M12 4.354a4 4 0 010 5.292"></path></svg>
-                هاوڕێیان
-            </button>
-            <button class="p-2">
-                <div class="w-12 h-8 bg-white rounded-lg flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-                </div>
-            </button>
-             <button data-view="inbox-view" data-title="نامەکان" class="tab-button flex flex-col items-center p-2 text-xs font-semibold">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                نامەکان
-            </button>
-             <button data-view="profile-view" data-title="پڕۆفایل" class="tab-button flex flex-col items-center p-2 text-xs font-semibold">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                پڕۆفایل
+            <button data-view="settings-view" data-title="ڕێکخستنەکان" class="tab-button flex flex-col items-center text-[var(--label-secondary)] p-2 transition-colors w-20">
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span class="text-xs mt-1">ڕێکخستنەکان</span>
             </button>
         </nav>
     </div>
 
     <script>
+        // --- DATA ---
+        const quizData = {
+            general: [
+                { question: "پایتەختی فەڕەنسا کام شارەیە؟", options: ["بەرلین", "مەدرید", "پاریس", "ڕۆما"], answer: "پاریس" },
+                { question: "درێژترین ڕووباری جیهان کامەیە؟", options: ["ئەمازۆن", "نیل", "یانگتسی", "میسیسیپی"], answer: "نیل" },
+                { question: "گەورەترین ئۆقیانووس لە جیهاندا کامەیە؟", options: ["ئەتلەسی", "هیندی", "ئارکتیک", "ئارام (پاسفیک)"], answer: "ئارام (پاسفیک)" },
+                { question: "کام وڵات بە 'خاکی خۆری هەڵهاتوو' ناسراوە؟", options: ["چین", "کۆریای باشوور", "ژاپۆن", "تایلەند"], answer: "ژاپۆن" },
+                { question: "بەرزترین تاوەری جیهان کامەیە؟", options: ["تاوەری شانگهای", "بورج خەلیفە", "تاوەری کەی ئێڵ", "تاوەری سی ئێن"], answer: "بورج خەلیفە" },
+                { question: "کام لەم ئاژەڵانە خێراترینە لەسەر وشکانی؟", options: ["شێر", "پڵنگ (چیتا)", "ئاسک", "کەرەکێوی"], answer: "پڵنگ (چیتا)" },
+                { question: "دراوی وڵاتی بەریتانیا چییە؟", options: ["یۆرۆ", "دۆلار", "پاوەندی ستەرلینگ", "فرانک"], answer: "پاوەندی ستەرلینگ" },
+                { question: "گەورەترین بیابانی گەرمی جیهان کامەیە؟", options: ["گۆبی", "کالاهاری", "عەرەبی", "سەحرا"], answer: "سەحرا" },
+                { question: "کام شار بە 'شاری خۆشەویستی' ناسراوە؟", options: ["ڤینیسیا", "پاریس", "ڕۆما", "فلۆرەنس"], answer: "پاریس" }
+            ],
+            social: [
+                { question: "قەڵای هەولێر لە چ ساڵێکدا خرایە لیستی یوونێسکۆوە؟", options: ["٢٠١٠", "٢٠١٤", "٢٠١٦", "٢٠١٨"], answer: "٢٠١٤" },
+                { question: "کام شاعیری کلاسیکی کورد بە 'نالی' ناسراوە؟", options: ["مەولەوی", "مەحوی", "مەلای جزیری", "نالی"], answer: "نالی" },
+                { question: "جەژنی نەورۆز یەکەم ڕۆژی چ وەرزێکە؟", options: ["هاوین", "پایز", "زستان", "بەهار"], answer: "بەهار" },
+                { question: "شەڕی چاڵدێران لە نێوان کێدا ڕوویدا؟", options: ["عوسمانی و سەفەوی", "ڕۆم و فارس", "عەباسی و ئەمەوی", "ئەیوبی و سەلجوقی"], answer: "عوسمانی و سەفەوی" },
+                { question: "کام هونەرمەند بە 'زیلانی هونەری کوردی' ناسراوە؟", options: ["حەسەن زیرەک", "عەلی مەردان", "محەممەد ماملێ", "تاهیر تۆفیق"], answer: "حەسەن زیرەک" },
+                { question: "یەکەمین ڕۆژنامەی کوردی ناوی چی بوو؟", options: ["ژیانەوە", "هاوار", "کوردستان", "بانگی کورد"], answer: "کوردستان" },
+                { question: "'مەم و زین' بەناوبانگترین بەرهەمی کام شاعیرە؟", options: ["ئەحمەدی خانی", "فەقێی تەیران", "مەلای جزیری", "نالی"], answer: "ئەحمەدی خانی" },
+                { question: "شاری سلێمانی لەلایەن کێوە بنیات نراوە؟", options: ["بابانییەکان", "سۆرانییەکان", "بۆتانییەکان", "ئەردەڵانییەکان"], answer: "بابانییەکان" },
+                { question: "جلوبەرگی کوردی سیمبولی چییە؟", options: ["دەوڵەمەندی", "پێگەی کۆمەڵایەتی", "شوناسی نەتەوەیی", "هیچ کامیان"], answer: "شوناسی نەتەوەیی" }
+            ],
+            science: [
+                { question: "فۆرمولای کیمیایی خوێی چێشت چییە؟", options: ["H2O", "CO2", "NaCl", "O2"], answer: "NaCl" },
+                { question: "ناسا کورتکراوەی چییە؟", options: ["ئاژانسی بۆشایی ئاسمانی ئەوروپا", "ئاژانسی نیشتیمانی بۆ فڕۆکەوانی و بۆشایی ئاسمان", "ناوەندی فڕینی بۆشایی ئاسمان", "کۆمپانیای سپەیس ئێکس"], answer: "ئاژانسی نیشتیمانی بۆ فڕۆکەوانی و بۆشایی ئاسمان" },
+                { question: "کام لەمانە کانزایەکی شلە لە پلەی گەرمی ژووردا؟", options: ["ئاسن", "زیو", "جیوە", "ئاڵتوون"], answer: "جیوە" },
+                { question: "هێزی ڕاکێشان لەلایەن کام زاناوە دۆزرایەوە؟", options: ["ئەلبێرت ئەنیشتاین", "گالیلێو گالیلەی", "ئیسحاق نیوتن", "ماری کوری"], answer: "ئیسحاق نیوتن" },
+                { question: "چەند ئێسک لە لەشی مرۆڤێکی پێگەیشتوودا هەیە؟", options: ["٢٠٦", "٢١٢", "١٩٨", "٢٢٠"], answer: "٢٠٦" },
+                { question: "خێرایی ڕووناکی چەندە؟", options: ["٣٠٠,٠٠٠ کم/چرکە", "١٥٠,٠٠٠ کم/چرکە", "٥٠٠,٠٠٠ کم/چرکە", "١,٠٠٠,٠٠٠ کم/چرکە"], answer: "٣٠٠,٠٠٠ کم/چرکە" },
+                { question: "کام گەردیلە بارگەی کارەبایی نەرێنی هەیە؟", options: ["پڕۆتۆن", "نیوترۆن", "ئەلکترۆن", "ناوک"], answer: "ئەلکترۆن" },
+                { question: "گەورەترین ئەندامی ناوەوەی لەشی مرۆڤ کامەیە؟", options: ["دڵ", "مێشک", " جگەر", "سییەکان"], answer: " جگەر" },
+                { question: "پرۆسەی گۆڕینی ئاو بۆ هەڵم پێی دەوترێت چی؟", options: ["بەستن", "توانەوە", "بەهەڵمبوون", "خەستبوونەوە"], answer: "بەهەڵمبوون" }
+            ]
+        };
+
+        // --- STATE ---
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let currentViewId = 'categories-view';
+
+        // --- DOM ELEMENTS ---
+        const headerTitle = document.getElementById('header-title');
         const tabButtons = document.querySelectorAll('.tab-button');
-        const header = document.getElementById('app-header');
-        const headerTitleDefault = document.getElementById('header-title-default');
-        const headerTitleHome = document.getElementById('header-title-home');
-        const appContent = document.getElementById('app-content');
-        let currentViewId = 'home-view';
+        const categoryList = document.getElementById('category-list');
+        const questionTitle = document.getElementById('question-title');
+        const answerOptionsContainer = document.getElementById('answer-options');
+        const nextQuestionBtn = document.getElementById('next-question-btn');
+        const playAgainBtn = document.getElementById('play-again-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const finalScoreEl = document.getElementById('final-score');
+        const scoreDetailsEl = document.getElementById('score-details');
 
-        const videoData = [
-            { id: 1, user: 'zana_farooq', caption: 'ئەمە یەکەم ڤیدیۆیە!', likes: '1.2M', comments: '12.3K', shares: '4.5K', avatar: 'https://i.pravatar.cc/150?u=zana', url: 'https://assets.mixkit.co/videos/preview/mixkit-woman-doing-yoga-on-a-rooftop-4922-large.mp4' },
-            { id: 2, user: 'dev_kurd', caption: 'سروشتی کوردستان زۆر جوانە', likes: '890K', comments: '8.1K', shares: '2.2K', avatar: 'https://i.pravatar.cc/150?u=dev', url: 'https://assets.mixkit.co/videos/preview/mixkit-womans-feet-splashing-in-the-pool-1264-large.mp4' },
-            { id: 3, user: 'erbil_city', caption: 'قەڵای هەولێر', likes: '2.5M', comments: '25.7K', shares: '11.8K', avatar: 'https://i.pravatar.cc/150?u=erbil', url: 'https://assets.mixkit.co/videos/preview/mixkit-girl-running-on-the-beach-in-a-red-dress-4191-large.mp4' }
-        ];
-
-        function renderVideos() {
-            const homeView = document.getElementById('home-view');
-            homeView.innerHTML = videoData.map(video => `
-                <div class="video-slide w-full h-full relative flex-shrink-0">
-                    <video class="w-full h-full object-cover" loop playsinline preload="auto" src="${video.url}"></video>
-                    <div class="absolute bottom-16 left-4 text-white text-shadow">
-                        <div class="flex items-center space-x-2">
-                            <img class="w-8 h-8 rounded-full border-2 border-white" src="${video.avatar}" alt="avatar">
-                            <p class="font-bold">@${video.user}</p>
-                        </div>
-                        <p class="mt-2">${video.caption}</p>
-                    </div>
-                    <div class="absolute bottom-16 right-2 text-white text-shadow flex flex-col items-center space-y-4">
-                        <button class="flex flex-col items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></svg><span class="text-xs font-semibold">${video.likes}</span></button>
-                        <button class="flex flex-col items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.083-3.083A7.002 7.002 0 012 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM4.832 15.168l.843-.281A6.002 6.002 0 004 10c0-2.651 2.865-5 7-5s7 2.349 7 5-2.865 5-7 5a7.845 7.845 0 01-2.924-.543l-.281.843z" clip-rule="evenodd" /></svg><span class="text-xs font-semibold">${video.comments}</span></button>
-                        <button class="flex flex-col items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 20 20" fill="currentColor"><path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" /></svg><span class="text-xs font-semibold">${video.shares}</span></button>
-                    </div>
-                </div>
-            `).join('');
-            setupVideoObserver();
-        }
-
+        // --- NAVIGATION ---
         function navigateTo(viewId, title) {
             if (viewId === currentViewId) return;
 
             const currentView = document.getElementById(currentViewId);
             const nextView = document.getElementById(viewId);
             
-            if (currentView) currentView.classList.remove('active');
-            if (nextView) nextView.classList.add('active');
+            headerTitle.textContent = title;
 
-            // Handle header state
-            if (viewId === 'home-view') {
-                header.classList.remove('bg-black', 'border-b', 'border-[var(--system-gray-3)]');
-                header.classList.add('bg-transparent');
-                headerTitleDefault.style.display = 'none';
-                headerTitleHome.style.display = 'flex';
-                appContent.style.paddingTop = '0';
-            } else {
-                header.classList.add('bg-black', 'border-b', 'border-[var(--system-gray-3)]');
-                header.classList.remove('bg-transparent');
-                headerTitleDefault.style.display = 'block';
-                headerTitleHome.style.display = 'none';
-                headerTitleDefault.textContent = title;
-                appContent.style.paddingTop = '3.5rem'; // Header height
+            if (currentView && nextView) {
+                const isNavigatingForward = (viewId === 'quiz-view' && currentViewId === 'categories-view') || (viewId === 'results-view' && currentViewId === 'quiz-view');
+                
+                if (isNavigatingForward) {
+                    currentView.classList.add('slide-out-left');
+                    nextView.classList.remove('hidden');
+                    nextView.classList.add('slide-in-right');
+                } else {
+                    // Basic reverse animation (can be improved)
+                    currentView.classList.add('slide-out-left'); // Simulate it sliding away
+                    nextView.classList.remove('hidden');
+                    nextView.classList.add('slide-in-right');
+                }
+                
+                setTimeout(() => {
+                    currentView.classList.add('hidden');
+                    currentView.classList.remove('slide-out-left');
+                    nextView.classList.remove('slide-in-right');
+                }, 350);
             }
-
+            
             currentViewId = viewId;
 
             tabButtons.forEach(button => {
-                if(button.dataset.view) {
-                    button.classList.toggle('active', button.dataset.view === viewId);
+                if (button.dataset.view === viewId || (viewId.includes('quiz') && button.dataset.view === 'categories-view') || (viewId.includes('results') && button.dataset.view === 'categories-view')  ) {
+                    button.classList.add('active');
+                    button.classList.remove('text-[var(--label-secondary)]');
+                } else {
+                    button.classList.remove('active');
+                    button.classList.add('text-[var(--label-secondary)]');
                 }
             });
         }
         
-        function setupVideoObserver() {
-            const options = { root: document.getElementById('home-view'), threshold: 0.8 };
-            const observer = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    const video = entry.target.querySelector('video');
-                    if (entry.isIntersecting) {
-                        video.play().catch(e => console.log("Autoplay was prevented."));
-                    } else {
-                        video.pause();
-                        video.currentTime = 0;
-                    }
-                });
-            }, options);
-
-            document.querySelectorAll('.video-slide').forEach(slide => {
-                observer.observe(slide);
-            });
+        // --- QUIZ LOGIC ---
+        function startQuiz(category) {
+            currentQuestions = quizData[category].sort(() => 0.5 - Math.random()); // Shuffle questions
+            currentQuestionIndex = 0;
+            score = 0;
+            navigateTo('quiz-view', 'پرسیار');
+            renderQuestion();
         }
 
+        function renderQuestion() {
+            // Clear previous answer states
+            answerOptionsContainer.innerHTML = '';
 
-        tabButtons.forEach(button => {
-            if (button.dataset.view) {
-                button.addEventListener('click', () => {
-                    navigateTo(button.dataset.view, button.dataset.title);
+            if (currentQuestionIndex < currentQuestions.length) {
+                const question = currentQuestions[currentQuestionIndex];
+                questionTitle.textContent = question.question;
+                
+                question.options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.textContent = option;
+                    button.classList.add('answer-option');
+                    button.addEventListener('click', selectAnswer);
+                    answerOptionsContainer.appendChild(button);
                 });
+
+                nextQuestionBtn.classList.add('hidden');
+                updateProgress();
+            } else {
+                 showResults();
+            }
+        }
+        
+        function selectAnswer(e) {
+            const selectedButton = e.target;
+            const correctAnswer = currentQuestions[currentQuestionIndex].answer;
+
+            Array.from(answerOptionsContainer.children).forEach(button => {
+                button.disabled = true;
+                if (button.textContent === correctAnswer) {
+                    button.classList.add('correct');
+                }
+            });
+
+            if (selectedButton.textContent === correctAnswer) {
+                score++;
+            } else {
+                selectedButton.classList.add('incorrect');
+            }
+            
+            setTimeout(() => {
+                 nextQuestionBtn.classList.remove('hidden');
+            }, 500); // Small delay to show feedback
+        }
+
+        function handleNextQuestion() {
+            currentQuestionIndex++;
+            renderQuestion();
+        }
+
+        function showResults() {
+            navigateTo('results-view', 'ئەنجام');
+            finalScoreEl.textContent = `${score} / ${currentQuestions.length}`;
+            scoreDetailsEl.textContent = `تۆ وەڵامی ${score} پرسیاری ڕاستت دایەوە لە کۆی ${currentQuestions.length}.`;
+        }
+        
+        function updateProgress() {
+            const progressPercentage = ((currentQuestionIndex) / currentQuestions.length) * 100;
+            progressBar.style.width = `${progressPercentage}%`;
+            progressText.textContent = `${currentQuestionIndex + 1} / ${currentQuestions.length}`;
+        }
+
+        // --- EVENT LISTENERS ---
+        categoryList.addEventListener('click', (e) => {
+            const categoryItem = e.target.closest('li');
+            if (categoryItem) {
+                const category = categoryItem.dataset.category;
+                startQuiz(category);
             }
         });
 
-        // Initial setup
-        document.addEventListener('DOMContentLoaded', () => {
-            renderVideos();
-            navigateTo('home-view', 'ماڵەوە'); // Start on home view
+        nextQuestionBtn.addEventListener('click', handleNextQuestion);
+
+        playAgainBtn.addEventListener('click', () => {
+            progressBar.style.width = `0%`; // Reset progress bar visually
+            navigateTo('categories-view', 'پۆلەکان');
         });
 
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const viewId = button.dataset.view;
+                const title = button.dataset.title;
+                if(viewId && title) {
+                    navigateTo(viewId, title);
+                }
+            });
+        });
+        
     </script>
 </body>
 </html>
