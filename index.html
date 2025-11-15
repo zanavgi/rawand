@@ -173,8 +173,8 @@
                       <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                     <h2 class="text-2xl font-bold mt-2">یاریدەدەری زیرەک</h2>
-                    <p class="text-[var(--label-secondary)] mt-1">وەشانی ١.٠</p>
-                    <p class="text-sm mt-4 text-center">دروستکراوە لەلایەن زانە فاروق. ئەم ئەپە زیرەکی دەستکرد بەکاردەهێنێت بۆ وەڵامدانەوەی پرسیارە گشتی و کۆمەڵایەتیەکانت.</p>
+                    <p class="text-[var(--label-secondary)] mt-1">وەشانی ١.١</p>
+                    <p class="text-sm mt-4 text-center">دروستکراوە لەلایەن زانە فاروق. ئەم ئەپە زیرەکی دەستکرد بەکاردەهێنێت بۆ وەڵامدانەوەی پرسیارە گشتی و زانستییەکانت.</p>
                 </div>
                  <ul class="list-inset-grouped">
                     <li class="list-chevron"><span>مەرجەکانی بەکارهێنان</span></li>
@@ -218,16 +218,26 @@
 
             headerTitle.textContent = title;
             
-            // Prepare views for transition
             nextView.classList.remove('hidden');
             
-            currentView.classList.add('slide-out-left');
-            nextView.classList.add('slide-in-right');
+            // Determine direction for animation
+            const currentTabIndex = Array.from(tabButtons).findIndex(btn => btn.dataset.view === currentViewId);
+            const nextTabIndex = Array.from(tabButtons).findIndex(btn => btn.dataset.view === viewId);
+
+            if (nextTabIndex > currentTabIndex) {
+                // Animate right to left
+                currentView.style.animation = 'slide-out-left 0.35s forwards';
+                nextView.style.animation = 'slide-in-right 0.35s forwards';
+            } else {
+                // Animate left to right
+                currentView.style.animation = 'slide-out-right 0.35s forwards';
+                nextView.style.animation = 'slide-in-left 0.35s forwards';
+            }
 
             setTimeout(() => {
                 currentView.classList.add('hidden');
-                currentView.classList.remove('slide-out-left');
-                nextView.classList.remove('slide-in-right');
+                currentView.style.animation = '';
+                nextView.style.animation = '';
                 currentViewId = viewId;
             }, 350);
 
@@ -242,6 +252,16 @@
                 }
             });
         }
+        
+        // Add additional keyframes for reverse animation
+        const styleSheet = document.createElement("style");
+        styleSheet.type = "text/css";
+        styleSheet.innerText = `
+            @keyframes slide-out-right { from { transform: translateX(0); } to { transform: translateX(100%); } }
+            @keyframes slide-in-left { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+        `;
+        document.head.appendChild(styleSheet);
+
 
         tabButtons.forEach(button => {
             button.addEventListener('click', () => {
@@ -285,11 +305,15 @@
                 }
                 messageContainer.appendChild(messageWrapper);
             });
-            messageContainer.scrollTop = messageContainer.scrollHeight;
+            // Scroll to the bottom smoothly
+             messageContainer.scrollTo({ top: messageContainer.scrollHeight, behavior: 'smooth' });
         }
-
+        
+        // --- UPGRADED AI RESPONSE FUNCTION ---
         function getAIResponse(userInput) {
             const lowerInput = userInput.toLowerCase().trim();
+            
+            // Basic conversational answers
             if (lowerInput.includes('سڵاو') || lowerInput.includes('سلاو')) {
                 return 'سڵاو! چۆن دەتوانم یارمەتیت بدەم ئەمڕۆ؟';
             }
@@ -302,7 +326,26 @@
             if (lowerInput.includes('زانە فاروق')) {
                 return 'زانە فاروق گەشەپێدەری منە، پسپۆڕێکی بواری زیرەکی دەستکرد و دیزاینە.';
             }
-            return 'ببوورە، هێشتا لە قۆناغی فێربووندام و لەم پرسیارە تێناگەم. دەتوانیت پرسیارێکی تر بکەیت؟';
+
+            // General and scientific knowledge
+            if (lowerInput.includes('گەورەترین زەریا')) {
+                return 'گەورەترین زەریا، زەریای هێمنە (Pacific Ocean)، کە نزیکەی یەک لەسەر سێی ڕووبەری زەوی داگیرکردووە.';
+            }
+            if (lowerInput.includes('بەرزی ئێڤرێست') || lowerInput.includes('کێوی ئێڤرێست')) {
+                return 'بەرزیی لووتکەی کێوی ئێڤرێست ٨٬٨٤٨.٨٦ مەتر لە ئاستی دەریاوە بەرزە.';
+            }
+            if (lowerInput.includes('یەکەم سەرۆکی ئەمریکا')) {
+                return 'یەکەم سەرۆکی ویلایەتە یەکگرتووەکانی ئەمریکا جۆرج واشنتۆن بوو.';
+            }
+             if (lowerInput.includes('پایتەختی هەرێمی کوردستان')) {
+                return 'پایتەختی هەرێمی کوردستان شاری هەولێرە.';
+            }
+            if (lowerInput.includes('ڕەنگەکانی ئاڵای کوردستان')) {
+                return 'ئاڵای کوردستان لە سێ ڕەنگی سەرەکی پێکدێت: سوور، سپی، و سەوز، لەگەڵ خۆرێکی زەرد لە ناوەڕاستیدا.';
+            }
+
+            // Default fallback response
+            return 'ببوورە، من هێشتا لە قۆناغی فێربووندام و لەم پرسیارە تێناگەم. تکایە پرسیارێکی ڕوونتر و دیاریکراوتر بکە.';
         }
 
         chatForm.addEventListener('submit', (e) => {
@@ -319,19 +362,19 @@
             messages.push({ sender: 'typing' });
             renderMessages();
 
-            // Simulate AI response
+            // Simulate AI thinking and response
             setTimeout(() => {
                 // Remove typing indicator
                 messages.pop();
                 const aiResponse = getAIResponse(userInput);
                 messages.push({ sender: 'ai', text: aiResponse });
                 renderMessages();
-            }, 1500);
+            }, 1200 + Math.random() * 500); // More realistic delay
         });
         
         // Initial welcome message
         setTimeout(() => {
-             messages.push({ sender: 'ai', text: 'سڵاو! من یاریدەدەری زیرەکی تۆم. چۆن دەتوانم یارمەتیت بدەم؟' });
+             messages.push({ sender: 'ai', text: 'سڵاو! من یاریدەدەری زیرەکی تۆم. دەتوانیت پرسیاری گشتی، زانستی و کۆمەڵایەتیم لێ بکەیت.' });
              renderMessages();
         }, 500);
 
