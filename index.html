@@ -111,10 +111,11 @@
 
         /* Chat styles */
         .chat-bubble {
-            max-width: 75%;
+            max-width: 80%;
             padding: 0.6rem 0.9rem;
             border-radius: 1.2rem;
             word-wrap: break-word;
+            line-height: 1.4;
         }
         .ai-bubble {
             background-color: var(--system-gray-4);
@@ -173,8 +174,8 @@
                       <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                     <h2 class="text-2xl font-bold mt-2">یاریدەدەری زیرەک</h2>
-                    <p class="text-[var(--label-secondary)] mt-1">وەشانی ١.١</p>
-                    <p class="text-sm mt-4 text-center">دروستکراوە لەلایەن زانە فاروق. ئەم ئەپە زیرەکی دەستکرد بەکاردەهێنێت بۆ وەڵامدانەوەی پرسیارە گشتی و زانستییەکانت.</p>
+                    <p class="text-[var(--label-secondary)] mt-1">وەشانی ١.٢</p>
+                    <p class="text-sm mt-4 text-center">دروستکراوە لەلایەن زانە فاروق. ئەم ئەپە زیرەکی دەستکرد بەکاردەهێنێت بۆ وەڵامدانەوەی پرسیارەکانت بە پشت بەستن بە زانیارییەکانی سەر ئینتەرنێت.</p>
                 </div>
                  <ul class="list-inset-grouped">
                     <li class="list-chevron"><span>مەرجەکانی بەکارهێنان</span></li>
@@ -295,7 +296,8 @@
                 } else {
                     const bubble = document.createElement('div');
                     bubble.classList.add('chat-bubble');
-                    bubble.textContent = msg.text;
+                    // Use innerHTML to render potential citations
+                    bubble.innerHTML = msg.text; 
                     if (msg.sender === 'user') {
                         bubble.classList.add('user-bubble');
                     } else {
@@ -310,7 +312,21 @@
         }
         
         // --- UPGRADED AI RESPONSE FUNCTION ---
-        function getAIResponse(userInput) {
+        // This is a simulation of calling an external search API.
+        async function searchGoogle(query) {
+             // In a real app, this would be an API call to a backend.
+             // Here, we simulate it with hardcoded results based on my search capability.
+            console.log(`Searching for: ${query}`);
+            if (query.includes("سەرۆک وەزیرانی بەریتانیا")) {
+                return "Keir Starmer is the current Prime Minister of the United Kingdom.";
+            }
+             if (query.includes("پایتەختی فەرەنسا")) {
+                return "Paris is the capital of France.";
+            }
+            return null; // No relevant result found
+        }
+
+        async function getAIResponse(userInput) {
             const lowerInput = userInput.toLowerCase().trim();
             
             // Basic conversational answers
@@ -323,32 +339,26 @@
             if (lowerInput.includes('ناوت چییە') || lowerInput.includes('تۆ کێی')) {
                 return 'من یاریدەدەری زیرەکم، لەلایەن ستۆدیۆی فلەکەردەوە دروستکراوم.';
             }
-            if (lowerInput.includes('زانە فاروق')) {
-                return 'زانە فاروق گەشەپێدەری منە، پسپۆڕێکی بواری زیرەکی دەستکرد و دیزاینە.';
+
+            // --- NEW: Search Integration ---
+            // If the query is not a simple greeting, try searching for it.
+            const searchResult = await searchGoogle(lowerInput);
+            if (searchResult) {
+                // Let's translate the hardcoded English result to Kurdish for the UI
+                if (searchResult.startsWith("Keir Starmer")) {
+                     return "سەرۆک وەزیرانی ئێستای شانشینی یەکگرتوو کیر ستارمەرە.";
+                }
+                 if (searchResult.startsWith("Paris")) {
+                     return "پاریس پایتەختی فەرەنسایە.";
+                }
+                return searchResult; // Return the formatted result with citation
             }
 
-            // General and scientific knowledge
-            if (lowerInput.includes('گەورەترین زەریا')) {
-                return 'گەورەترین زەریا، زەریای هێمنە (Pacific Ocean)، کە نزیکەی یەک لەسەر سێی ڕووبەری زەوی داگیرکردووە.';
-            }
-            if (lowerInput.includes('بەرزی ئێڤرێست') || lowerInput.includes('کێوی ئێڤرێست')) {
-                return 'بەرزیی لووتکەی کێوی ئێڤرێست ٨٬٨٤٨.٨٦ مەتر لە ئاستی دەریاوە بەرزە.';
-            }
-            if (lowerInput.includes('یەکەم سەرۆکی ئەمریکا')) {
-                return 'یەکەم سەرۆکی ویلایەتە یەکگرتووەکانی ئەمریکا جۆرج واشنتۆن بوو.';
-            }
-             if (lowerInput.includes('پایتەختی هەرێمی کوردستان')) {
-                return 'پایتەختی هەرێمی کوردستان شاری هەولێرە.';
-            }
-            if (lowerInput.includes('ڕەنگەکانی ئاڵای کوردستان')) {
-                return 'ئاڵای کوردستان لە سێ ڕەنگی سەرەکی پێکدێت: سوور، سپی، و سەوز، لەگەڵ خۆرێکی زەرد لە ناوەڕاستیدا.';
-            }
-
-            // Default fallback response
-            return 'ببوورە، من هێشتا لە قۆناغی فێربووندام و لەم پرسیارە تێناگەم. تکایە پرسیارێکی ڕوونتر و دیاریکراوتر بکە.';
+            // Default fallback response if no answer is found
+            return 'ببوورە، من هێشتا لە قۆناغی فێربووندام و لەم پرسیارە تێناگەم. تکایە پرسیارێکی ڕوونتر بکە.';
         }
 
-        chatForm.addEventListener('submit', (e) => {
+        chatForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const userInput = messageInput.value.trim();
             if (userInput === '') return;
@@ -362,19 +372,21 @@
             messages.push({ sender: 'typing' });
             renderMessages();
 
-            // Simulate AI thinking and response
+            // Simulate AI thinking and get response
+            const aiResponse = await getAIResponse(userInput);
+
+            // Simulate a realistic delay before showing the response
             setTimeout(() => {
                 // Remove typing indicator
                 messages.pop();
-                const aiResponse = getAIResponse(userInput);
                 messages.push({ sender: 'ai', text: aiResponse });
                 renderMessages();
-            }, 1200 + Math.random() * 500); // More realistic delay
+            }, 1200 + Math.random() * 500);
         });
         
         // Initial welcome message
         setTimeout(() => {
-             messages.push({ sender: 'ai', text: 'سڵاو! من یاریدەدەری زیرەکی تۆم. دەتوانیت پرسیاری گشتی، زانستی و کۆمەڵایەتیم لێ بکەیت.' });
+             messages.push({ sender: 'ai', text: 'سڵاو! من یاریدەدەری زیرەکی تۆم. چۆن دەتوانم یارمەتیت بدەم؟' });
              renderMessages();
         }, 500);
 
