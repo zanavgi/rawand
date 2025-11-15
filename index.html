@@ -2,8 +2,8 @@
 <html lang="ku">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Ai KurdCPT</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Zana AI Kurdish</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
@@ -11,10 +11,10 @@
             --system-gray-1: #f2f2f7;
             --system-gray-2: #ffffff;
             --system-gray-3: #c7c7cc;
-            --system-gray-4: #d1d1d6;
+            --system-gray-4: #e5e5ea;
+            --system-gray-5: #d1d1d6;
             --label-primary: #000000;
             --label-secondary: #8e8e93;
-            --label-tertiary: #c5c5c7;
         }
         html, body {
             height: 100%;
@@ -38,17 +38,14 @@
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--system-gray-1);
+            right: 0;
+            bottom: 0;
             transition: transform 0.35s cubic-bezier(0.4, 0.0, 0.2, 1);
             will-change: transform;
+            background-color: var(--system-gray-1);
             overflow-y: auto;
-            padding-top: 1rem;
-            padding-bottom: 1rem;
         }
         
-        /* Navigation Animation Classes */
         @keyframes slide-in-right { from { transform: translateX(100%); } to { transform: translateX(0); } }
         @keyframes slide-out-left { from { transform: translateX(0); } to { transform: translateX(-100%); } }
         @keyframes slide-in-left { from { transform: translateX(-100%); } to { transform: translateX(0); } }
@@ -59,274 +56,340 @@
         .slide-in-left { animation: slide-in-left 0.35s cubic-bezier(0.4, 0.0, 0.2, 1) forwards; }
         .slide-out-right { animation: slide-out-right 0.35s cubic-bezier(0.4, 0.0, 0.2, 1) forwards; }
 
-        .app-view.hidden {
-            display: none;
-        }
-        .tab-button.active {
-            color: var(--system-blue);
-        }
+        .app-view.hidden { display: none; }
+        .tab-button.active { color: var(--system-blue); }
+
         .list-inset-grouped {
-            margin-left: 1rem;
-            margin-right: 1rem;
+            margin: 1rem 1rem;
             border-radius: 0.75rem;
             background-color: var(--system-gray-2);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             overflow: hidden;
         }
-        .list-inset-grouped li {
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid var(--system-gray-3);
+        .list-inset-grouped-header {
+            padding: 0.5rem 1rem;
+            color: var(--label-secondary);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+        .list-item {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--system-gray-4);
             cursor: pointer;
+            transition: background-color 0.2s;
         }
-        .list-inset-grouped li:last-child {
-            border-bottom: none;
-        }
-        .chevron-icon {
-            color: var(--system-gray-3);
-        }
-        #header-back-button {
-            transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+        .list-item:active { background-color: var(--system-gray-5); }
+        .list-inset-grouped li:last-child { border-bottom: none; }
+        .list-item-chevron { color: var(--system-gray-3); }
+        .list-item-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
         }
     </style>
 </head>
-<body class="flex justify-center items-center bg-black">
+<body class="bg-black flex justify-center items-center">
 
     <div id="app-container" class="w-full max-w-md h-full flex flex-col bg-[var(--system-gray-1)] shadow-2xl overflow-hidden">
         
-        <header id="app-header" class="relative flex items-center justify-center p-3 bg-[var(--system-gray-1)]/80 backdrop-blur-md border-b border-[var(--system-gray-3)] flex-shrink-0">
-            <button id="header-back-button" class="absolute left-4 opacity-0 transform -translate-x-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[var(--system-blue)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-                </svg>
+        <header id="app-header" class="relative flex items-center justify-center p-3 bg-[var(--system-gray-1)]/80 backdrop-blur-md border-b border-[var(--system-gray-3)] flex-shrink-0 h-[50px]">
+            <button id="back-button" class="hidden absolute left-4 text-[var(--system-blue)] flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                <span id="back-button-label" class="text-base">بابەتەکان</span>
             </button>
-            <h1 id="header-title" class="text-lg font-semibold text-center mx-auto"></h1>
+            <h1 id="header-title" class="text-lg font-semibold text-center mx-auto">بابەتەکان</h1>
         </header>
 
         <main id="app-content" class="flex-1 relative">
             
-            <div id="grades-view" class="app-view">
-                <ul id="grades-list" class="list-inset-grouped">
-                    <!-- Grades will be rendered here by JavaScript -->
-                </ul>
-            </div>
-
-            <div id="subjects-view" class="app-view hidden">
-                <ul id="subjects-list" class="list-inset-grouped">
+            <div id="subjects-view" class="app-view">
+                <ul id="subjects-list" class="list-inset-grouped mt-0">
                     <!-- Subjects will be rendered here by JavaScript -->
                 </ul>
             </div>
 
-            <div id="lesson-view" class="app-view hidden p-4">
-                <div class="flex flex-col h-full">
-                    <div id="lesson-content" class="flex-grow space-y-4">
-                       <div class="flex items-start gap-2.5">
-                            <div class="flex flex-col w-full max-w-[320px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl">
-                                <p id="ai-greeting" class="text-sm font-normal text-gray-900"></p>
-                            </div>
+            <div id="subject-detail-view" class="app-view hidden">
+                <!-- Subject details will be rendered here by JavaScript -->
+            </div>
+
+            <div id="chat-view" class="app-view hidden flex flex-col p-0">
+                <div id="chat-messages" class="flex-1 p-4 space-y-4 overflow-y-auto">
+                    <div class="flex justify-start">
+                        <div class="bg-[var(--system-gray-4)] p-3 rounded-2xl max-w-[80%]">
+                            <p class="text-base">سڵاو قوتابی بەڕێز! من زانام، یارمەتیدەری زیرەکی تۆ. چۆن دەتوانم یارمەتیت بدەم لە وانەکانی پۆلی 5؟</p>
                         </div>
                     </div>
-                    <div class="mt-4 flex items-center p-2 bg-[var(--system-gray-2)] rounded-full border border-[var(--system-gray-3)]">
-                        <input type="text" placeholder="پرسیارەکەت بنووسە..." class="flex-grow bg-transparent focus:outline-none px-2">
-                        <button class="p-2 rounded-full bg-[var(--system-blue)] text-white">
-                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-                            </svg>
+                </div>
+                <div class="p-2 bg-[var(--system-gray-1)]/80 backdrop-blur-md border-t border-[var(--system-gray-3)]">
+                    <form id="chat-form" class="flex items-center space-x-2">
+                        <input id="chat-input" type="text" placeholder="نامەکەت بنووسە..." class="flex-1 p-2 border border-[var(--system-gray-3)] rounded-full focus:outline-none focus:ring-2 focus:ring-[var(--system-blue)]">
+                        <button type="submit" class="bg-[var(--system-blue)] text-white rounded-full p-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
                         </button>
-                    </div>
+                    </form>
                 </div>
             </div>
 
-            <div id="chat-view" class="app-view hidden p-4">
-                <div class="text-center mt-16 flex flex-col items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-[var(--label-tertiary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    </svg>
-                    <h2 class="text-2xl font-bold mt-4">Ai KurdCPT</h2>
-                    <p class="text-[var(--label-secondary)] mt-2 text-center">بەڵێ، من لەلایەن ڕەوەند ئەی ئای دروستکراوم. <br> چۆن دەتوانم یارمەتیت بدەم؟</p>
+            <div id="camera-view" class="app-view hidden p-4 flex flex-col items-center justify-center text-center">
+                <div class="w-full aspect-square bg-black/80 rounded-2xl flex items-center justify-center mb-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                </div>
+                <p class="text-[var(--label-secondary)] mb-4">کامێراکەت ئاڕاستەی ئەو لاپەڕەیە بکە کە لێی تێناگەیت، یان وێنەیەک باربکە.</p>
+                <div class="w-full space-y-3">
+                    <button class="w-full bg-[var(--system-blue)] text-white font-semibold py-3 rounded-lg">گرتنی وێنە</button>
+                    <button class="w-full bg-[var(--system-gray-2)] text-[var(--system-blue)] font-semibold py-3 rounded-lg border border-[var(--system-gray-3)]">بارکردنی وێنە</button>
+                </div>
+            </div>
+            
+            <div id="settings-view" class="app-view hidden">
+                 <ul class="list-inset-grouped">
+                    <li class="flex justify-between items-center"><span>ناوی بەرنامە</span> <span class="text-[var(--label-secondary)]">Zana AI Kurdish</span></li>
+                    <li class="flex justify-between items-center"><span>وەشان</span> <span class="text-[var(--label-secondary)]">2025-2026</span></li>
+                </ul>
+                 <ul class="list-inset-grouped">
+                    <li class="flex justify-between items-center"><span>گەشەپێدەر</span> <span class="text-[var(--label-secondary)]">Zana Faruq</span></li>
+                    <li class="flex justify-between items-center"><span>ستۆدیۆ</span> <span class="text-[var(--label-secondary)]">FLKRDSTUDIO</span></li>
+                </ul>
+                 <div class="text-center p-4 text-xs text-[var(--label-secondary)]">
+                    <p>هەموو ساڵێک نوێکردنەوەی بۆ دەکرێت.</p>
                 </div>
             </div>
             
         </main>
 
-        <nav id="app-tab-bar" class="flex justify-around items-center py-2 bg-[var(--system-gray-1)]/80 backdrop-blur-md border-t border-[var(--system-gray-3)] flex-shrink-0">
-             <button data-view="grades-view" data-title="پۆلەکان" class="tab-button active flex flex-col items-center p-2 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-                <span class="text-xs mt-1">پۆلەکان</span>
+        <nav id="app-tab-bar" class="flex justify-around items-center py-1 bg-[var(--system-gray-1)]/80 backdrop-blur-md border-t border-[var(--system-gray-3)] flex-shrink-0 h-[55px]">
+             <button data-view="subjects-view" data-title="بابەتەکان" class="tab-button active flex flex-col items-center p-2 transition-colors w-1/4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                <span class="text-xs mt-1">بابەتەکان</span>
             </button>
-            <button data-view="chat-view" data-title="گفتوگۆی زیرەک" class="tab-button flex flex-col items-center text-[var(--label-secondary)] p-2 transition-colors">
-                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
-                <span class="text-xs mt-1">گفتوگۆی زیرەک</span>
+            <button data-view="chat-view" data-title="گفتوگۆ" class="tab-button text-[var(--label-secondary)] flex flex-col items-center p-2 transition-colors w-1/4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                <span class="text-xs mt-1">گفتوگۆ</span>
+            </button>
+            <button data-view="camera-view" data-title="کامێرا" class="tab-button text-[var(--label-secondary)] flex flex-col items-center p-2 transition-colors w-1/4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                <span class="text-xs mt-1">کامێرا</span>
+            </button>
+            <button data-view="settings-view" data-title="ڕێکخستنەکان" class="tab-button text-[var(--label-secondary)] flex flex-col items-center p-2 transition-colors w-1/4">
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                <span class="text-xs mt-1">ڕێکخستنەکان</span>
             </button>
         </nav>
     </div>
 
     <script>
-        // --- DATA SOURCE ---
-        const schoolData = {
-            grades: [
-                { id: 1, name: "پۆلی یەکەم", subjects: ['kurdish', 'math', 'science', 'english', 'islamic', 'art', 'sports'] },
-                { id: 2, name: "پۆلی دووەم", subjects: ['kurdish', 'math', 'science', 'english', 'islamic', 'art', 'sports'] },
-                { id: 3, name: "پۆلی سێیەم", subjects: ['kurdish', 'math', 'science', 'english', 'islamic', 'art', 'sports'] },
-                { id: 4, name: "پۆلی چوارەم", subjects: ['kurdish', 'math', 'science', 'english', 'arabic', 'social_studies', 'islamic', 'art', 'sports'] },
-                { id: 5, name: "پۆلی پێنجەم", subjects: ['kurdish', 'math', 'science', 'english', 'arabic', 'social_studies', 'islamic', 'art', 'sports'] },
-                { id: 6, name: "پۆلی شەشەم", subjects: ['kurdish', 'math', 'science', 'english', 'arabic', 'social_studies', 'islamic', 'art', 'sports'] }
-            ],
-            subjects: {
-                kurdish: { name: "کوردی" },
-                math: { name: "بیرکاری" },
-                science: { name: "زانست" },
-                english: { name: "ئینگلیزی" },
-                islamic: { name: "پەروەردەی ئیسلامی" },
-                art: { name: "هونەر" },
-                sports: { name: "وەرزش" },
-                arabic: { name: "زمانی عەرەبی" },
-                social_studies: { name: "کۆمەڵایەتی" }
-            }
-        };
+        document.addEventListener('DOMContentLoaded', () => {
+            const subjects = [
+                { id: 'kurdish', name: 'کوردی', iconColor: 'bg-red-500', semesters: [
+                    { title: 'وەرزی یەکەم', topics: ['ڕێزمان', 'نووسینەوە (شێوازی ئۆنلاین)'] },
+                    { title: 'وەرزی دووەم', topics: ['هۆنراوە و خوێندنەوە', 'دیکتە و ڕاستنووسین'] }
+                ]},
+                { id: 'arabic', name: 'عەرەبی', iconColor: 'bg-green-500', semesters: [
+                    { title: 'وەرزی یەکەم', topics: [] }, { title: 'وەرزی دووەم', topics: [] }
+                ]},
+                { id: 'social', name: 'کۆمەڵایەتی', iconColor: 'bg-yellow-500', semesters: [
+                    { title: 'وەرزی یەکەم', topics: ['مێژوو'] }, { title: 'وەرزی دووەم', topics: ['جوگرافیا'] }
+                ]},
+                { id: 'science', name: 'زانست', iconColor: 'bg-blue-500', semesters: [
+                    { title: 'وەرزی یەکەم', topics: [] }, { title: 'وەرزی دووەم', topics: [] }
+                ]},
+                { id: 'english', name: 'ئینگلیزی', iconColor: 'bg-gray-700', semesters: [
+                    { title: 'وەرزی یەکەم (White Theme)', topics: [] }, { title: 'وەرزی دووەم (Black Theme)', topics: [] }
+                ]},
+                { id: 'math', name: 'بیرکاری', iconColor: 'bg-purple-500', semesters: [
+                    { title: 'وەرزی یەکەم', topics: [] }, { title: 'وەرزی دووەم', topics: [] }
+                ]},
+                { id: 'religion', name: 'ئایین', iconColor: 'bg-teal-500', semesters: [
+                    { title: 'وەرزی یەکەم', topics: [] }, { title: 'وەرزی دووەم', topics: [] }
+                ]},
+                { id: 'art', name: 'هونەر', iconColor: 'bg-pink-500', semesters: [{ title: 'بابەتەکان', topics: [] }]},
+                { id: 'sports', name: 'وەرزش', iconColor: 'bg-orange-500', semesters: [{ title: 'چالاکییەکان', topics: [] }]},
+            ];
 
-        // --- DOM ELEMENTS ---
-        const headerTitle = document.getElementById('header-title');
-        const headerBackButton = document.getElementById('header-back-button');
-        const tabButtons = document.querySelectorAll('.tab-button');
-        const gradesListContainer = document.getElementById('grades-list');
-        const subjectsListContainer = document.getElementById('subjects-list');
-        const aiGreeting = document.getElementById('ai-greeting');
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const headerTitle = document.getElementById('header-title');
+            const backButton = document.getElementById('back-button');
+            const backButtonLabel = document.getElementById('back-button-label');
 
-        // --- STATE MANAGEMENT ---
-        let navigationStack = [{ viewId: 'grades-view', title: 'پۆلەکان' }];
-        let currentViewId = 'grades-view';
+            let viewStack = ['subjects-view']; // To manage navigation history
 
-        // --- NAVIGATION SYSTEM ---
-        function navigateTo(viewId, title, direction = 'forward') {
-            const currentView = document.getElementById(currentViewId);
-            const nextView = document.getElementById(viewId);
+            function navigateTo(targetViewId, title, isPush = true) {
+                const currentViewId = viewStack[viewStack.length - 1];
+                if (targetViewId === currentViewId) return;
 
-            if (!nextView || viewId === currentViewId) return;
+                const currentView = document.getElementById(currentViewId);
+                const nextView = document.getElementById(targetViewId);
 
-            headerTitle.textContent = title;
-            
-            const slideOutClass = direction === 'forward' ? 'slide-out-left' : 'slide-out-right';
-            const slideInClass = direction === 'forward' ? 'slide-in-right' : 'slide-in-left';
+                if (!currentView || !nextView) return;
 
-            currentView.classList.add(slideOutClass);
-            nextView.classList.remove('hidden');
-            nextView.classList.add(slideInClass);
-            
-            setTimeout(() => {
-                currentView.classList.add('hidden');
-                currentView.classList.remove(slideOutClass);
-                nextView.classList.remove(slideInClass);
-            }, 350);
-            
-            currentViewId = viewId;
-            updateBackButton();
-            updateActiveTab();
-        }
-
-        function updateBackButton() {
-            if (navigationStack.length > 1) {
-                headerBackButton.classList.remove('opacity-0', '-translate-x-4');
-                headerBackButton.classList.add('opacity-100', 'translate-x-0');
-            } else {
-                headerBackButton.classList.remove('opacity-100', 'translate-x-0');
-                headerBackButton.classList.add('opacity-0', '-translate-x-4');
-            }
-        }
-
-        function navigateBack() {
-            if (navigationStack.length <= 1) return;
-            navigationStack.pop();
-            const previousState = navigationStack[navigationStack.length - 1];
-            navigateTo(previousState.viewId, previousState.title, 'backward');
-        }
-
-        function updateActiveTab() {
-             const isTabView = ['grades-view', 'chat-view'].includes(currentViewId);
-             tabButtons.forEach(button => {
-                const buttonView = button.dataset.view;
-                if (isTabView && buttonView === navigationStack[0].viewId) {
-                    button.classList.add('active');
-                    button.classList.remove('text-[var(--label-secondary)]');
-                } else {
-                    button.classList.remove('active');
-                    button.classList.add('text-[var(--label-secondary)]');
+                headerTitle.textContent = title;
+                
+                // Animation logic
+                const isDetailView = targetViewId === 'subject-detail-view';
+                const isReturningFromDetail = currentViewId === 'subject-detail-view';
+                
+                if (isDetailView) {
+                    currentView.classList.add('slide-out-left');
+                    nextView.classList.remove('hidden');
+                    nextView.classList.add('slide-in-right');
+                    backButton.classList.remove('hidden');
+                } else if (isReturningFromDetail) {
+                    currentView.classList.add('slide-out-right');
+                    nextView.classList.remove('hidden');
+                    nextView.classList.add('slide-in-left');
+                    backButton.classList.add('hidden');
+                } else { // Tab navigation
+                    currentView.classList.add('hidden');
+                    nextView.classList.remove('hidden');
                 }
-             });
-        }
-        
-        // --- RENDER FUNCTIONS ---
-        function renderGrades() {
-            gradesListContainer.innerHTML = '';
-            schoolData.grades.forEach(grade => {
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <span>${grade.name}</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 chevron-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                `;
-                li.addEventListener('click', () => showSubjectsForGrade(grade.id, grade.name));
-                gradesListContainer.appendChild(li);
-            });
-        }
 
-        function showSubjectsForGrade(gradeId, gradeName) {
-            const grade = schoolData.grades.find(g => g.id === gradeId);
-            if (!grade) return;
+                if (isPush) {
+                    viewStack.push(targetViewId);
+                }
+
+                // Cleanup animations
+                setTimeout(() => {
+                    if (isDetailView || isReturningFromDetail) {
+                        currentView.classList.add('hidden');
+                        currentView.className = 'app-view hidden';
+                        nextView.className = 'app-view';
+                    }
+                }, 350);
+
+                updateActiveTab(targetViewId);
+            }
+
+            function navigateBack() {
+                if (viewStack.length <= 1) return;
+                
+                const currentViewId = viewStack.pop();
+                const targetViewId = viewStack[viewStack.length - 1];
+                
+                const previousTab = document.querySelector(`.tab-button[data-view="${targetViewId}"]`);
+                const title = previousTab ? previousTab.dataset.title : "بابەتەکان";
+                
+                navigateTo(targetViewId, title, false);
+            }
             
-            subjectsListContainer.innerHTML = '';
-            grade.subjects.forEach(subjectKey => {
-                const subject = schoolData.subjects[subjectKey];
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <span>${subject.name}</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 chevron-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                `;
-                li.addEventListener('click', () => showLessonForSubject(subject.name));
-                subjectsListContainer.appendChild(li);
+            backButton.addEventListener('click', navigateBack);
+
+            function updateActiveTab(viewId) {
+                const mainViewId = viewId === 'subject-detail-view' ? 'subjects-view' : viewId;
+                tabButtons.forEach(button => {
+                    if (button.dataset.view === mainViewId) {
+                        button.classList.add('active');
+                        button.classList.remove('text-[var(--label-secondary)]');
+                    } else {
+                        button.classList.remove('active');
+                        button.classList.add('text-[var(--label-secondary)]');
+                    }
+                });
+            }
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const viewId = button.dataset.view;
+                    const title = button.dataset.title;
+                    if (viewId && title) {
+                        viewStack = ['subjects-view']; // Reset stack for main tabs
+                        navigateTo(viewId, title);
+                    }
+                });
             });
-            
-            const newState = { viewId: 'subjects-view', title: `وانەکانی ${gradeName}` };
-            navigationStack.push(newState);
-            navigateTo(newState.viewId, newState.title);
-        }
 
-        function showLessonForSubject(subjectName) {
-            aiGreeting.textContent = `سڵاو، بەخێربێیت بۆ وانەی ${subjectName}. من Ai KurdCPTم، لەلایەن ڕەوەند ئەی ئای دروستکراوم. چۆن دەتوانم یارمەتیت بدەم لەم وانەیەدا؟`;
-            const newState = { viewId: 'lesson-view', title: subjectName };
-            navigationStack.push(newState);
-            navigateTo(newState.viewId, newState.title);
-        }
+            // --- Render Functions ---
+            const subjectsListContainer = document.getElementById('subjects-list');
+            function renderSubjects() {
+                subjectsListContainer.innerHTML = subjects.map(subject => `
+                    <li class="list-item" data-subject-id="${subject.id}">
+                        <div class="flex items-center">
+                            <div class="list-item-icon ${subject.iconColor}">
+                                <!-- You can place SVGs here -->
+                            </div>
+                            <span>${subject.name}</span>
+                        </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 list-item-chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                    </li>
+                `).join('');
+            }
 
-        // --- EVENT LISTENERS ---
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const viewId = button.dataset.view;
-                const title = button.dataset.title;
-                if (viewId && title) {
-                    navigationStack = [{ viewId, title }];
-                    navigateTo(viewId, title, 'backward'); // Use backward to avoid pushing to stack
+            const subjectDetailContainer = document.getElementById('subject-detail-view');
+            function renderSubjectDetail(subjectId) {
+                const subject = subjects.find(s => s.id === subjectId);
+                if (!subject) return;
+
+                let content = '';
+                subject.semesters.forEach(semester => {
+                    content += `
+                        <div class="list-inset-grouped-header">${semester.title}</div>
+                        <ul class="list-inset-grouped mt-0">
+                            ${semester.topics.length > 0 ? 
+                                semester.topics.map(topic => `<li class="list-item !cursor-default">${topic}</li>`).join('') :
+                                `<li class="list-item !cursor-default text-[var(--label-secondary)]">هیچ بابەتێک زیاد نەکراوە</li>`
+                            }
+                        </ul>
+                    `;
+                });
+                subjectDetailContainer.innerHTML = content;
+            }
+
+            subjectsListContainer.addEventListener('click', (e) => {
+                const listItem = e.target.closest('.list-item');
+                if (listItem) {
+                    const subjectId = listItem.dataset.subjectId;
+                    const subject = subjects.find(s => s.id === subjectId);
+                    if (subject) {
+                        renderSubjectDetail(subjectId);
+                        backButtonLabel.textContent = headerTitle.textContent;
+                        navigateTo('subject-detail-view', subject.name);
+                    }
                 }
             });
+
+            // --- Chat Functionality ---
+            const chatForm = document.getElementById('chat-form');
+            const chatInput = document.getElementById('chat-input');
+            const chatMessagesContainer = document.getElementById('chat-messages');
+
+            chatForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const userMessage = chatInput.value.trim();
+                if (!userMessage) return;
+
+                // Add user message
+                chatMessagesContainer.innerHTML += `
+                    <div class="flex justify-end">
+                        <div class="bg-[var(--system-blue)] text-white p-3 rounded-2xl max-w-[80%]">
+                            <p class="text-base">${userMessage}</p>
+                        </div>
+                    </div>
+                `;
+
+                chatInput.value = '';
+                chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+
+                // Simulate AI response
+                setTimeout(() => {
+                    chatMessagesContainer.innerHTML += `
+                        <div class="flex justify-start">
+                            <div class="bg-[var(--system-gray-4)] p-3 rounded-2xl max-w-[80%]">
+                                <p class="text-base">ببوورە، من هێشتا لە قۆناغی فێربووندام. تکایە لە مامۆستاکەت بپرسە یان بابەتەکان بپشکنە.</p>
+                            </div>
+                        </div>
+                    `;
+                    chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+                }, 1000);
+            });
+
+            // Initial Render
+            renderSubjects();
         });
-        
-        headerBackButton.addEventListener('click', navigateBack);
-
-        // --- INITIALIZATION ---
-        function init() {
-            const initialState = navigationStack[0];
-            headerTitle.textContent = initialState.title;
-            document.getElementById(initialState.viewId).classList.remove('hidden');
-            updateActiveTab();
-            renderGrades();
-        }
-
-        init();
     </script>
 </body>
 </html>
