@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>FLKRDSTUDIO Quiz App</title>
+    <title>Quiz App</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
@@ -13,7 +13,6 @@
             --system-gray-1: #f2f2f7; /* Primary background */
             --system-gray-2: #ffffff; /* Grouped component background */
             --system-gray-3: #c7c7cc; /* Borders, separators */
-            --system-gray-4: #e5e5ea; 
             --label-primary: #000000;
             --label-secondary: #8e8e93;
         }
@@ -39,322 +38,333 @@
             height: 100%;
             transition: transform 0.35s cubic-bezier(0.4, 0.0, 0.2, 1);
             will-change: transform;
-            padding-top: 1rem;
+            padding-bottom: 90px; /* Space for tab bar */
         }
-        .app-view.hidden { transform: translateX(100%); pointer-events: none; opacity: 0; }
+        .app-view.hidden { display: none; }
+
         @keyframes slide-in-right { from { transform: translateX(100%); } to { transform: translateX(0); } }
         @keyframes slide-out-left { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+        @keyframes slide-in-left { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+        @keyframes slide-out-right { from { transform: translateX(0); } to { transform: translateX(100%); } }
+
         .slide-in-right { animation: slide-in-right 0.35s cubic-bezier(0.4, 0.0, 0.2, 1) forwards; }
         .slide-out-left { animation: slide-out-left 0.35s cubic-bezier(0.4, 0.0, 0.2, 1) forwards; }
+        .slide-in-left { animation: slide-in-left 0.35s cubic-bezier(0.4, 0.0, 0.2, 1) forwards; }
+        .slide-out-right { animation: slide-out-right 0.35s cubic-bezier(0.4, 0.0, 0.2, 1) forwards; }
+
         .tab-button.active { color: var(--system-blue); }
+
         .list-inset-grouped {
-            margin: 0 1rem;
+            margin: 1rem;
             border-radius: 0.75rem;
             background-color: var(--system-gray-2);
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             overflow: hidden;
         }
-        .list-inset-grouped li {
-            padding: 0.75rem 1rem;
+        .list-item {
+            padding: 0.85rem 1rem;
             border-bottom: 1px solid var(--system-gray-3);
             display: flex;
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
-            transition: background-color 0.2s;
         }
-        .list-inset-grouped li:active { background-color: var(--system-gray-4); }
-        .list-inset-grouped li:last-child { border-bottom: none; }
-        .chevron::after {
-            content: '>';
-            color: var(--label-secondary);
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-        .answer-option {
-            display: block;
-            width: 100%;
-            text-align: left;
-            padding: 1rem;
+        .list-item:last-child { border-bottom: none; }
+        .quiz-option {
             background-color: var(--system-gray-2);
-            border: 1px solid var(--system-gray-3);
-            border-radius: 0.75rem;
-            margin-bottom: 0.75rem;
-            transition: background-color 0.2s, border-color 0.2s;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            border: 2px solid transparent;
         }
-        .answer-option.correct { background-color: var(--system-green); color: white; border-color: var(--system-green); }
-        .answer-option.incorrect { background-color: var(--system-red); color: white; border-color: var(--system-red); }
-        .answer-option:disabled { opacity: 0.7; }
+        .quiz-option.correct {
+            background-color: #eaf9ed;
+            border-color: var(--system-green);
+        }
+        .quiz-option.incorrect {
+            background-color: #ffeeed;
+            border-color: var(--system-red);
+        }
     </style>
 </head>
 <body class="flex justify-center items-center bg-black">
 
     <div id="app-container" class="w-full max-w-md h-full flex flex-col bg-[var(--system-gray-1)] shadow-2xl overflow-hidden">
         
-        <header id="app-header" class="flex items-center justify-center p-3 bg-[var(--system-gray-1)]/80 backdrop-blur-md border-b border-[var(--system-gray-3)] flex-shrink-0">
-            <h1 id="header-title" class="text-lg font-semibold text-center mx-auto">پۆلەکان</h1>
+        <header id="app-header" class="relative flex items-center justify-center p-3 bg-[var(--system-gray-1)]/80 backdrop-blur-md border-b border-[var(--system-gray-3)] flex-shrink-0">
+            <button id="back-button" class="absolute left-4 hidden text-[var(--system-blue)] text-lg flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                <span id="back-button-text">پاشگەزبوونەوە</span>
+            </button>
+            <h1 id="header-title" class="text-lg font-semibold text-center mx-auto">کategorî</h1>
         </header>
 
         <main id="app-content" class="flex-1 overflow-y-auto relative">
             
             <div id="categories-view" class="app-view">
-                <p class="text-[var(--label-secondary)] px-5 mb-2 text-sm">پۆلێک هەڵبژێرە بۆ دەستپێکردن</p>
                 <ul id="category-list" class="list-inset-grouped">
-                    <li data-category="general"><span>زانیاری گشتی</span><span class="chevron"></span></li>
-                    <li data-category="social"><span>مێژوو و کولتوور</span><span class="chevron"></span></li>
-                    <li data-category="science"><span>زانست</span><span class="chevron"></span></li>
+                    <!-- Categories will be rendered here by JavaScript -->
                 </ul>
             </div>
-            
+
             <div id="quiz-view" class="app-view hidden">
-                <div class="p-4 h-full flex flex-col">
-                    <div class="mb-4 flex-shrink-0">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="text-sm font-medium text-[var(--label-secondary)]">پێشکەوتن</span>
-                            <span id="progress-text" class="text-sm font-medium text-[var(--label-secondary)]">1 / 10</span>
-                        </div>
-                        <div class="w-full bg-[var(--system-gray-3)] rounded-full h-1.5">
-                            <div id="progress-bar" class="bg-[var(--system-blue)] h-1.5 rounded-full transition-all duration-300 ease-in-out" style="width: 10%"></div>
-                        </div>
+                <div class="p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <p class="text-sm text-[var(--label-secondary)]">پرسیار <span id="question-counter">1</span> / <span id="total-questions">10</span></p>
+                        <p class="text-sm font-semibold">Score: <span id="score-display">0</span></p>
                     </div>
-                    <div class="flex-grow flex flex-col justify-center">
-                        <h2 id="question-title" class="text-2xl font-bold mb-6 text-center"></h2>
-                        <div id="answer-options"></div>
+                    <div class="w-full bg-[var(--system-gray-3)] rounded-full h-2 mb-6">
+                        <div id="progress-bar" class="bg-[var(--system-blue)] h-2 rounded-full" style="width: 10%"></div>
                     </div>
-                    <button id="next-question-btn" class="hidden w-full bg-[var(--system-blue)] text-white font-bold py-3 px-4 rounded-lg mt-4 flex-shrink-0">پرسیاری دواتر</button>
+                    <div class="flex items-start space-x-3 mb-4">
+                        <h2 id="question-text" class="text-2xl font-bold flex-1">...</h2>
+                        <button id="speak-question-button" class="p-2 text-[var(--label-secondary)]">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                        </button>
+                    </div>
+                    <div id="options-container" class="space-y-3">
+                        <!-- Options will be rendered here -->
+                    </div>
                 </div>
             </div>
 
-            <div id="results-view" class="app-view hidden flex flex-col items-center justify-center text-center p-4">
-                <h2 class="text-2xl font-bold mb-2">کۆتایی هات!</h2>
-                <p class="text-5xl font-bold my-4" id="final-score"></p>
-                <p class="text-[var(--label-secondary)] text-lg" id="score-details"></p>
-                <button id="play-again-btn" class="w-4/5 bg-[var(--system-blue)] text-white font-bold py-3 px-4 rounded-lg mt-8">دووبارە یاری بکەرەوە</button>
-            </div>
-
-            <div id="settings-view" class="app-view hidden">
-                 <ul class="list-inset-grouped">
-                    <li><span>پرۆفایل</span></li>
-                    <li><span>ئاگادارکردنەوەکان</span></li>
-                    <li><span>دەربارەی ئێمە</span></li>
-                </ul>
+            <div id="results-view" class="app-view hidden flex flex-col items-center justify-center text-center">
+                 <div class="p-4">
+                    <h2 class="text-2xl font-bold mb-2">کۆتایی کویز!</h2>
+                    <p class="text-lg text-[var(--label-secondary)] mb-6">ئەنجامی کۆتاییت:</p>
+                    <p class="text-6xl font-bold mb-8"><span id="final-score">0</span> / <span id="total-score">0</span></p>
+                    <button id="play-again-button" class="w-full bg-[var(--system-blue)] text-white font-semibold py-3 px-6 rounded-lg">دووبارە یاری بکەرەوە</button>
+                </div>
             </div>
             
         </main>
 
         <nav id="app-tab-bar" class="flex justify-around items-center py-2 bg-[var(--system-gray-1)]/80 backdrop-blur-md border-t border-[var(--system-gray-3)] flex-shrink-0">
-             <button data-view="categories-view" data-title="پۆلەکان" class="tab-button active flex flex-col items-center p-2 transition-colors w-20">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                   <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
-                <span class="text-xs mt-1">پۆلەکان</span>
-            </button>
-            <button data-view="settings-view" data-title="ڕێکخستنەکان" class="tab-button flex flex-col items-center text-[var(--label-secondary)] p-2 transition-colors w-20">
-                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span class="text-xs mt-1">ڕێکخستنەکان</span>
+             <button class="tab-button active flex flex-col items-center p-2 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                <span class="text-xs mt-1">کویزەکان</span>
             </button>
         </nav>
     </div>
 
     <script>
-        // --- DATA ---
         const quizData = {
-            general: [
-                { question: "پایتەختی فەڕەنسا کام شارەیە؟", options: ["بەرلین", "مەدرید", "پاریس", "ڕۆما"], answer: "پاریس" },
-                { question: "درێژترین ڕووباری جیهان کامەیە؟", options: ["ئەمازۆن", "نیل", "یانگتسی", "میسیسیپی"], answer: "نیل" },
-                { question: "گەورەترین ئۆقیانووس لە جیهاندا کامەیە؟", options: ["ئەتلەسی", "هیندی", "ئارکتیک", "ئارام (پاسفیک)"], answer: "ئارام (پاسفیک)" },
-                { question: "کام وڵات بە 'خاکی خۆری هەڵهاتوو' ناسراوە؟", options: ["چین", "کۆریای باشوور", "ژاپۆن", "تایلەند"], answer: "ژاپۆن" },
-                { question: "بەرزترین تاوەری جیهان کامەیە؟", options: ["تاوەری شانگهای", "بورج خەلیفە", "تاوەری کەی ئێڵ", "تاوەری سی ئێن"], answer: "بورج خەلیفە" },
-                { question: "کام لەم ئاژەڵانە خێراترینە لەسەر وشکانی؟", options: ["شێر", "پڵنگ (چیتا)", "ئاسک", "کەرەکێوی"], answer: "پڵنگ (چیتا)" },
-                { question: "دراوی وڵاتی بەریتانیا چییە؟", options: ["یۆرۆ", "دۆلار", "پاوەندی ستەرلینگ", "فرانک"], answer: "پاوەندی ستەرلینگ" },
-                { question: "گەورەترین بیابانی گەرمی جیهان کامەیە؟", options: ["گۆبی", "کالاهاری", "عەرەبی", "سەحرا"], answer: "سەحرا" },
-                { question: "کام شار بە 'شاری خۆشەویستی' ناسراوە؟", options: ["ڤینیسیا", "پاریس", "ڕۆما", "فلۆرەنس"], answer: "پاریس" }
-            ],
-            social: [
-                { question: "قەڵای هەولێر لە چ ساڵێکدا خرایە لیستی یوونێسکۆوە؟", options: ["٢٠١٠", "٢٠١٤", "٢٠١٦", "٢٠١٨"], answer: "٢٠١٤" },
-                { question: "کام شاعیری کلاسیکی کورد بە 'نالی' ناسراوە؟", options: ["مەولەوی", "مەحوی", "مەلای جزیری", "نالی"], answer: "نالی" },
-                { question: "جەژنی نەورۆز یەکەم ڕۆژی چ وەرزێکە؟", options: ["هاوین", "پایز", "زستان", "بەهار"], answer: "بەهار" },
-                { question: "شەڕی چاڵدێران لە نێوان کێدا ڕوویدا؟", options: ["عوسمانی و سەفەوی", "ڕۆم و فارس", "عەباسی و ئەمەوی", "ئەیوبی و سەلجوقی"], answer: "عوسمانی و سەفەوی" },
-                { question: "کام هونەرمەند بە 'زیلانی هونەری کوردی' ناسراوە؟", options: ["حەسەن زیرەک", "عەلی مەردان", "محەممەد ماملێ", "تاهیر تۆفیق"], answer: "حەسەن زیرەک" },
-                { question: "یەکەمین ڕۆژنامەی کوردی ناوی چی بوو؟", options: ["ژیانەوە", "هاوار", "کوردستان", "بانگی کورد"], answer: "کوردستان" },
-                { question: "'مەم و زین' بەناوبانگترین بەرهەمی کام شاعیرە؟", options: ["ئەحمەدی خانی", "فەقێی تەیران", "مەلای جزیری", "نالی"], answer: "ئەحمەدی خانی" },
-                { question: "شاری سلێمانی لەلایەن کێوە بنیات نراوە؟", options: ["بابانییەکان", "سۆرانییەکان", "بۆتانییەکان", "ئەردەڵانییەکان"], answer: "بابانییەکان" },
-                { question: "جلوبەرگی کوردی سیمبولی چییە؟", options: ["دەوڵەمەندی", "پێگەی کۆمەڵایەتی", "شوناسی نەتەوەیی", "هیچ کامیان"], answer: "شوناسی نەتەوەیی" }
-            ],
-            science: [
-                { question: "فۆرمولای کیمیایی خوێی چێشت چییە؟", options: ["H2O", "CO2", "NaCl", "O2"], answer: "NaCl" },
-                { question: "ناسا کورتکراوەی چییە؟", options: ["ئاژانسی بۆشایی ئاسمانی ئەوروپا", "ئاژانسی نیشتیمانی بۆ فڕۆکەوانی و بۆشایی ئاسمان", "ناوەندی فڕینی بۆشایی ئاسمان", "کۆمپانیای سپەیس ئێکس"], answer: "ئاژانسی نیشتیمانی بۆ فڕۆکەوانی و بۆشایی ئاسمان" },
-                { question: "کام لەمانە کانزایەکی شلە لە پلەی گەرمی ژووردا؟", options: ["ئاسن", "زیو", "جیوە", "ئاڵتوون"], answer: "جیوە" },
-                { question: "هێزی ڕاکێشان لەلایەن کام زاناوە دۆزرایەوە؟", options: ["ئەلبێرت ئەنیشتاین", "گالیلێو گالیلەی", "ئیسحاق نیوتن", "ماری کوری"], answer: "ئیسحاق نیوتن" },
-                { question: "چەند ئێسک لە لەشی مرۆڤێکی پێگەیشتوودا هەیە؟", options: ["٢٠٦", "٢١٢", "١٩٨", "٢٢٠"], answer: "٢٠٦" },
-                { question: "خێرایی ڕووناکی چەندە؟", options: ["٣٠٠,٠٠٠ کم/چرکە", "١٥٠,٠٠٠ کم/چرکە", "٥٠٠,٠٠٠ کم/چرکە", "١,٠٠٠,٠٠٠ کم/چرکە"], answer: "٣٠٠,٠٠٠ کم/چرکە" },
-                { question: "کام گەردیلە بارگەی کارەبایی نەرێنی هەیە؟", options: ["پڕۆتۆن", "نیوترۆن", "ئەلکترۆن", "ناوک"], answer: "ئەلکترۆن" },
-                { question: "گەورەترین ئەندامی ناوەوەی لەشی مرۆڤ کامەیە؟", options: ["دڵ", "مێشک", " جگەر", "سییەکان"], answer: " جگەر" },
-                { question: "پرۆسەی گۆڕینی ئاو بۆ هەڵم پێی دەوترێت چی؟", options: ["بەستن", "توانەوە", "بەهەڵمبوون", "خەستبوونەوە"], answer: "بەهەڵمبوون" }
-            ]
+            history: {
+                title: "مێژوو",
+                questions: [
+                    { question: "دامەزرێنەری ئیمپراتۆریەتی عوسمانی کێ بوو؟", options: ["عوسمانی یەکەم", "سوڵتان سولەیمان", "محەمەدی دووەم", "ئەحمەدی یەکەم"], answer: "عوسمانی یەکەم" },
+                    { question: "ئیمپراتۆریەتی ئەکەدی لە چ ناوچەیەکدا سەریهەڵدا؟", options: ["میزۆپۆتامیا", "میسر", "یۆنان", "ڕۆما"], answer: "میزۆپۆتامیا" },
+                    { question: "کام شارستانیەت بە یاساکانی حاموڕابی بەناوبانگە؟", options: ["بابل", "ئاشوور", "سۆمەر", "فارس"], answer: "بابل" },
+                    { question: "شاری نەینەوا پایتەختی کام ئیمپراتۆریەت بوو؟", options: ["ئاشوور", "کلدان", "ماد", "ساسانی"], answer: "ئاشوور" },
+                    { question: "فەتحی قوستەنتینیە لەلایەن سوڵتان محەمەدی دووەمەوە لە چ ساڵێکدا بوو؟", options: ["١٤٥٣", "١٢٩٩", "١٥٢٠", "١٦٨٣"], answer: "١٤٥٣" }
+                ]
+            },
+            geography: {
+                title: "جوگرافیا",
+                questions: [
+                    { question: "درێژترین ڕووبار لە جیهاندا کامەیە؟", options: ["نیل", "ئەمازۆن", "یانگتزی", "میسیسیپی"], answer: "نیل" },
+                    { question: "گەورەترین بیابان لە جیهاندا کامەیە؟", options: ["بیابانی گەورەی عەرەبی", "گۆبی", "بیابانی ئەنتارکتیکا", "کالاهاری"], answer: "بیابانی ئەنتارکتیکا" },
+                    { question: "کام وڵات بە 'خاکی خۆری هەڵاتوو' ناسراوە؟", options: ["ژاپۆن", "چین", "کۆریای باشوور", "ڤێتنام"], answer: "ژاپۆن" },
+                    { question: "بەرزترین شاخ لە جیهاندا چییە؟", options: ["کەی توو", "کانگچێنجونگا", "ئێڤرێست", "لۆتسێ"], answer: "ئێڤرێست" },
+                    { question: "کام زەریا گەورەترینە لە جیهاندا؟", options: ["زەریای هێمن", "زەریای ئەتڵەسی", "زەریای هیندی", "زەریای بەستەڵەکی باکوور"], answer: "زەریای هێمن" }
+                ]
+            },
+            science: {
+                title: "زانست",
+                questions: [
+                    { question: "ناوەکی خانە چی تێدایە؟", options: ["DNA", "ڕایبۆسۆم", "مایتۆکۆندریا", "پرۆتین"], answer: "DNA" },
+                    { question: "خێراترین گیانەوەر لەسەر وشکانی کامەیە؟", options: ["پڵنگی چیتا", "شێر", "گورگ", "ئاسک"], answer: "پڵنگی چیتا" },
+                    { question: "کام گە ग्रह بە 'هەسارەی سوور' ناسراوە؟", options: ["مەریخ", "زەوی", "ڤینۆس", "موشتەری"], answer: "مەریخ" },
+                    { question: "فۆرمولەی کیمیایی ئاو چییە؟", options: ["H2O", "CO2", "O2", "NaCl"], answer: "H2O" },
+                    { question: "یەکەی پێوانەکردنی هێز چییە؟", options: ["نیوتن", "وات", "جوول", "پاسکال"], answer: "نیوتن" }
+                ]
+            }
         };
 
-        // --- STATE ---
-        let currentQuestions = [];
+        // DOM Elements
+        const headerTitle = document.getElementById('header-title');
+        const backButton = document.getElementById('back-button');
+        const backButtonText = document.getElementById('back-button-text');
+        
+        const categoryList = document.getElementById('category-list');
+        const questionCounter = document.getElementById('question-counter');
+        const totalQuestions = document.getElementById('total-questions');
+        const scoreDisplay = document.getElementById('score-display');
+        const progressBar = document.getElementById('progress-bar');
+        const questionText = document.getElementById('question-text');
+        const speakQuestionButton = document.getElementById('speak-question-button');
+        const optionsContainer = document.getElementById('options-container');
+
+        const finalScoreEl = document.getElementById('final-score');
+        const totalScoreEl = document.getElementById('total-score');
+        const playAgainButton = document.getElementById('play-again-button');
+
+        const views = {
+            categories: document.getElementById('categories-view'),
+            quiz: document.getElementById('quiz-view'),
+            results: document.getElementById('results-view'),
+        };
+        
+        let currentCategory = null;
         let currentQuestionIndex = 0;
         let score = 0;
-        let currentViewId = 'categories-view';
+        let navigationStack = ['categories'];
 
-        // --- DOM ELEMENTS ---
-        const headerTitle = document.getElementById('header-title');
-        const tabButtons = document.querySelectorAll('.tab-button');
-        const categoryList = document.getElementById('category-list');
-        const questionTitle = document.getElementById('question-title');
-        const answerOptionsContainer = document.getElementById('answer-options');
-        const nextQuestionBtn = document.getElementById('next-question-btn');
-        const playAgainBtn = document.getElementById('play-again-btn');
-        const progressBar = document.getElementById('progress-bar');
-        const progressText = document.getElementById('progress-text');
-        const finalScoreEl = document.getElementById('final-score');
-        const scoreDetailsEl = document.getElementById('score-details');
-
-        // --- NAVIGATION ---
-        function navigateTo(viewId, title) {
-            if (viewId === currentViewId) return;
-
-            const currentView = document.getElementById(currentViewId);
-            const nextView = document.getElementById(viewId);
-            
-            headerTitle.textContent = title;
-
-            if (currentView && nextView) {
-                const isNavigatingForward = (viewId === 'quiz-view' && currentViewId === 'categories-view') || (viewId === 'results-view' && currentViewId === 'quiz-view');
-                
-                if (isNavigatingForward) {
-                    currentView.classList.add('slide-out-left');
-                    nextView.classList.remove('hidden');
-                    nextView.classList.add('slide-in-right');
-                } else {
-                    // Basic reverse animation (can be improved)
-                    currentView.classList.add('slide-out-left'); // Simulate it sliding away
-                    nextView.classList.remove('hidden');
-                    nextView.classList.add('slide-in-right');
-                }
-                
-                setTimeout(() => {
-                    currentView.classList.add('hidden');
-                    currentView.classList.remove('slide-out-left');
-                    nextView.classList.remove('slide-in-right');
-                }, 350);
+        // --- Text-to-Speech ---
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'ku'; // Kurdish language code
+                speechSynthesis.speak(utterance);
+            } else {
+                alert("داوای لێبوردن دەکەین، وێبگەڕەکەت پشتگیری دەنگ ناکات.");
             }
-            
-            currentViewId = viewId;
-
-            tabButtons.forEach(button => {
-                if (button.dataset.view === viewId || (viewId.includes('quiz') && button.dataset.view === 'categories-view') || (viewId.includes('results') && button.dataset.view === 'categories-view')  ) {
-                    button.classList.add('active');
-                    button.classList.remove('text-[var(--label-secondary)]');
-                } else {
-                    button.classList.remove('active');
-                    button.classList.add('text-[var(--label-secondary)]');
-                }
-            });
         }
         
-        // --- QUIZ LOGIC ---
-        function startQuiz(category) {
-            currentQuestions = quizData[category].sort(() => 0.5 - Math.random()); // Shuffle questions
+        speakQuestionButton.addEventListener('click', () => speak(questionText.textContent));
+
+        // --- Navigation ---
+        function navigateTo(viewName, direction = 'forward') {
+            const currentViewName = navigationStack[navigationStack.length - 1];
+            if (currentViewName === viewName) return;
+
+            const currentView = views[currentViewName];
+            const nextView = views[viewName];
+
+            let slideOutClass, slideInClass;
+            if (direction === 'forward') {
+                slideOutClass = 'slide-out-left';
+                slideInClass = 'slide-in-right';
+                navigationStack.push(viewName);
+            } else {
+                slideOutClass = 'slide-out-right';
+                slideInClass = 'slide-in-left';
+                navigationStack.pop();
+            }
+
+            currentView.classList.add(slideOutClass);
+            nextView.classList.remove('hidden');
+            nextView.classList.add(slideInClass);
+            
+            setTimeout(() => {
+                currentView.classList.add('hidden');
+                currentView.classList.remove(slideOutClass);
+                nextView.classList.remove(slideInClass);
+            }, 350);
+            
+            updateHeader();
+        }
+
+        function updateHeader() {
+            const currentViewName = navigationStack[navigationStack.length - 1];
+            if (currentViewName === 'categories') {
+                headerTitle.textContent = 'Kategorî';
+                backButton.classList.add('hidden');
+            } else if (currentViewName === 'quiz') {
+                headerTitle.textContent = quizData[currentCategory].title;
+                backButton.classList.remove('hidden');
+                backButtonText.textContent = 'Kategorî'
+            } else if (currentViewName === 'results') {
+                headerTitle.textContent = 'Encam';
+                backButton.classList.add('hidden'); // Or navigate back to categories
+            }
+        }
+        
+        backButton.addEventListener('click', () => {
+            if (navigationStack.length > 1) {
+                navigateTo(navigationStack[navigationStack.length - 2], 'backward');
+            }
+        });
+
+        // --- Quiz Logic ---
+        function startQuiz(categoryKey) {
+            currentCategory = categoryKey;
             currentQuestionIndex = 0;
             score = 0;
-            navigateTo('quiz-view', 'پرسیار');
+            navigateTo('quiz');
             renderQuestion();
         }
 
         function renderQuestion() {
-            // Clear previous answer states
-            answerOptionsContainer.innerHTML = '';
-
-            if (currentQuestionIndex < currentQuestions.length) {
-                const question = currentQuestions[currentQuestionIndex];
-                questionTitle.textContent = question.question;
-                
-                question.options.forEach(option => {
-                    const button = document.createElement('button');
-                    button.textContent = option;
-                    button.classList.add('answer-option');
-                    button.addEventListener('click', selectAnswer);
-                    answerOptionsContainer.appendChild(button);
-                });
-
-                nextQuestionBtn.classList.add('hidden');
-                updateProgress();
-            } else {
-                 showResults();
+            scoreDisplay.textContent = score;
+            const questions = quizData[currentCategory].questions;
+            totalQuestions.textContent = questions.length;
+            
+            if (currentQuestionIndex >= questions.length) {
+                showResults();
+                return;
             }
+
+            const question = questions[currentQuestionIndex];
+            questionCounter.textContent = currentQuestionIndex + 1;
+            progressBar.style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+            questionText.textContent = question.question;
+            optionsContainer.innerHTML = '';
+
+            question.options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = "w-full text-left p-4 rounded-lg list-item quiz-option";
+                button.textContent = option;
+                button.onclick = () => selectAnswer(button, option, question.answer);
+                optionsContainer.appendChild(button);
+            });
         }
         
-        function selectAnswer(e) {
-            const selectedButton = e.target;
-            const correctAnswer = currentQuestions[currentQuestionIndex].answer;
+        function selectAnswer(button, selectedOption, correctAnswer) {
+            const allOptions = optionsContainer.querySelectorAll('button');
+            allOptions.forEach(btn => btn.disabled = true); // Disable all options
 
-            Array.from(answerOptionsContainer.children).forEach(button => {
-                button.disabled = true;
-                if (button.textContent === correctAnswer) {
-                    button.classList.add('correct');
-                }
-            });
-
-            if (selectedButton.textContent === correctAnswer) {
+            if (selectedOption === correctAnswer) {
                 score++;
+                button.classList.add('correct');
             } else {
-                selectedButton.classList.add('incorrect');
+                button.classList.add('incorrect');
+                allOptions.forEach(btn => {
+                    if (btn.textContent === correctAnswer) {
+                        btn.classList.add('correct');
+                    }
+                });
             }
-            
-            setTimeout(() => {
-                 nextQuestionBtn.classList.remove('hidden');
-            }, 500); // Small delay to show feedback
-        }
 
-        function handleNextQuestion() {
-            currentQuestionIndex++;
-            renderQuestion();
+            setTimeout(() => {
+                currentQuestionIndex++;
+                renderQuestion();
+            }, 1500); // Wait 1.5 seconds before next question
         }
 
         function showResults() {
-            navigateTo('results-view', 'ئەنجام');
-            finalScoreEl.textContent = `${score} / ${currentQuestions.length}`;
-            scoreDetailsEl.textContent = `تۆ وەڵامی ${score} پرسیاری ڕاستت دایەوە لە کۆی ${currentQuestions.length}.`;
+            const questions = quizData[currentCategory].questions;
+            finalScoreEl.textContent = score;
+            totalScoreEl.textContent = questions.length;
+            navigateTo('results');
         }
         
-        function updateProgress() {
-            const progressPercentage = ((currentQuestionIndex) / currentQuestions.length) * 100;
-            progressBar.style.width = `${progressPercentage}%`;
-            progressText.textContent = `${currentQuestionIndex + 1} / ${currentQuestions.length}`;
-        }
-
-        // --- EVENT LISTENERS ---
-        categoryList.addEventListener('click', (e) => {
-            const categoryItem = e.target.closest('li');
-            if (categoryItem) {
-                const category = categoryItem.dataset.category;
-                startQuiz(category);
-            }
+        playAgainButton.addEventListener('click', () => {
+             navigateTo('categories', 'backward');
         });
 
-        nextQuestionBtn.addEventListener('click', handleNextQuestion);
-
-        playAgainBtn.addEventListener('click', () => {
-            progressBar.style.width = `0%`; // Reset progress bar visually
-            navigateTo('categories-view', 'پۆلەکان');
-        });
-
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const viewId = button.dataset.view;
-                const title = button.dataset.title;
-                if(viewId && title) {
-                    navigateTo(viewId, title);
-                }
+        // --- Initial Setup ---
+        function renderCategories() {
+            categoryList.innerHTML = '';
+            Object.keys(quizData).forEach(key => {
+                const category = quizData[key];
+                const li = document.createElement('li');
+                li.className = 'list-item';
+                li.onclick = () => startQuiz(key);
+                li.innerHTML = `
+                    <span>${category.title}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[var(--label-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                `;
+                categoryList.appendChild(li);
             });
-        });
+        }
         
+        // --- App Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCategories();
+            updateHeader();
+        });
+
     </script>
 </body>
 </html>
